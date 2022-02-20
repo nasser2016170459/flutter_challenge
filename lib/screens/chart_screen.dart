@@ -14,24 +14,42 @@ class ChartScreen extends StatefulWidget {
 class _ChartScreenState extends State<ChartScreen> {
   List<Order> _orders = [];
   final List<SalesInfo> _sales = [];
+  final Map<String, int> _salesMap = {};
+
   Future<List<SalesInfo>> getSales() async {
     _orders = await DataController.getData();
-    adjustData();
+   // adjustDataOldMethod();
+    adjustDataNewMethod();
     return _sales;
   }
 
-  void adjustData() {
+  void adjustDataNewMethod() {
     for (int i = 0; i < _orders.length; i++) {
       Order order = _orders[i];
-      SalesInfo sale = SalesInfo(date: order.registered, numberOfSales: 1);
-      for (int j = 1; j < _orders.length; j++) {
-        if (_orders[j].registered == order.registered) {
-          sale.numberOfSales += 1;
-        }
+      if (!_salesMap.containsKey(order.registered)) {
+        _salesMap[order.registered] = 1;
+      } else {
+        _salesMap.update(order.registered, (value) {
+          return value += 1;
+        });
       }
-      _sales.add(sale);
     }
   }
+
+  // void adjustDataOldMethod() {
+  //   for (int i = 0; i < _orders.length; i++) {
+  //     Order order = _orders[i];
+  //     SalesInfo sale = SalesInfo(date: order.registered, numberOfSales: 1);
+  //     for (int j = 0; j < _orders.length; j++) {
+  //       if (i != j) {
+  //         if (_orders[j].registered == order.registered) {
+  //           sale.numberOfSales += 1;
+  //         }
+  //       }
+  //     }
+  //     _sales.add(sale);
+  //   }
+  // }
 
   // ignore: prefer_typing_uninitialized_variables
   var salesFuture;
@@ -67,7 +85,10 @@ class _ChartScreenState extends State<ChartScreen> {
                 tooltipBehavior: TooltipBehavior(enable: true),
                 series: <LineSeries<SalesInfo, String>>[
                   LineSeries<SalesInfo, String>(
-                    dataSource: _sales,
+                    dataSource: _salesMap.entries
+                        .map((e) =>
+                            SalesInfo(date: e.key, numberOfSales: e.value))
+                        .toList(),
                     xValueMapper: (SalesInfo sale, _) => sale.date,
                     yValueMapper: (SalesInfo sale, _) => sale.numberOfSales,
                     name: 'Sales',

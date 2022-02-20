@@ -17,6 +17,7 @@ class DataController {
       element.registered = adjustDate(element.registered);
     }
     _orders.sort((a, b) => a.registered.compareTo(b.registered));
+
     return _orders;
   }
 
